@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Web.Services;
 using System.Data;
-
-// We need these to talk to MySQL
+using System.Web.Services;
 using MySql.Data.MySqlClient;
 
 namespace accountmanager
@@ -43,6 +41,49 @@ namespace accountmanager
         }
 
         [WebMethod]
+        public bool CreateStudyGroup(
+            string groupName,
+            string course,
+            string section,
+            int createdBy)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
+
+            string sqlInsert =
+                @"INSERT INTO studygroups
+                  (GroupName, Course, Section, CreatedBy)
+                  VALUES (@groupName, @course, @section, @createdBy)";
+
+            using (MySqlConnection sqlConnection =
+                   new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                   new MySqlCommand(sqlInsert, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue("@groupName", groupName);
+                sqlCommand.Parameters.AddWithValue("@course", course);
+                sqlCommand.Parameters.AddWithValue("@section", section);
+                sqlCommand.Parameters.AddWithValue("@createdBy", createdBy);
+
+                try
+                {
+                    sqlConnection.Open();
+
+                    int rowsAffected =
+                        sqlCommand.ExecuteNonQuery();
+
+                    return rowsAffected > 0;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+
+        [WebMethod]
         public bool LeaveGroup(string username, int groupId)
         {
             string sqlConnectString =
@@ -60,12 +101,18 @@ namespace accountmanager
             using (MySqlCommand sqlCommand =
                    new MySqlCommand(sqlDelete, sqlConnection))
             {
-                sqlCommand.Parameters.AddWithValue("@username", username);
-                sqlCommand.Parameters.AddWithValue("@groupId", groupId);
+                sqlCommand.Parameters.AddWithValue(
+                    "@username",
+                    username);
+
+                sqlCommand.Parameters.AddWithValue(
+                    "@groupId",
+                    groupId);
 
                 sqlConnection.Open();
 
-                int rowsAffected = sqlCommand.ExecuteNonQuery();
+                int rowsAffected =
+                    sqlCommand.ExecuteNonQuery();
 
                 return rowsAffected > 0;
             }
