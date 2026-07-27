@@ -49,5 +49,44 @@ namespace accountmanager
 			//return the number of rows we have, that's how many accounts are in the system!
 			return sqlDt.Rows.Count;
 		}
+		
+		[WebMethod]
+		public bool CreateStudyGroup(string groupName, string course, string section, int createdBy)
+		{
+			string sqlConnectString =
+				System.Configuration.ConfigurationManager
+				.ConnectionStrings["myDB"].ConnectionString;
+
+			string sqlInsert =
+				"INSERT INTO studygroups " +
+				"(GroupName, Course, Section, CreatedBy) " +
+				"VALUES (@groupName, @course, @section, @createdBy)";
+
+			MySqlConnection sqlConnection =
+				new MySqlConnection(sqlConnectString);
+
+			MySqlCommand sqlCommand =
+				new MySqlCommand(sqlInsert, sqlConnection);
+
+			sqlCommand.Parameters.AddWithValue("@groupName", groupName);
+			sqlCommand.Parameters.AddWithValue("@course", course);
+			sqlCommand.Parameters.AddWithValue("@section", section);
+			sqlCommand.Parameters.AddWithValue("@createdBy", createdBy);
+
+			try
+			{
+				sqlConnection.Open();
+				int rowsAffected = sqlCommand.ExecuteNonQuery();
+				return rowsAffected > 0;
+			}
+			catch (Exception)
+			{
+				return false;
+			}
+			finally
+			{
+				sqlConnection.Close();
+			}
+		}
 	}
 }
