@@ -22,7 +22,7 @@ namespace accountmanager
                 .ConnectionStrings["myDB"]
                 .ConnectionString;
 
-            string sqlSelect = "SELECT * FROM users";
+            string sqlSelect = "SELECT * FROM accounts";
 
             MySqlConnection sqlConnection =
                 new MySqlConnection(sqlConnectString);
@@ -82,7 +82,39 @@ namespace accountmanager
                 }
             }
         }
+        [WebMethod]
+        public bool JoinStudyGroup(string username, int groupId)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
 
+            string sqlInsert =
+                @"INSERT INTO groupmembers
+                (Username, GroupID)
+                VALUES (@username, @groupId)";
+
+            using (MySqlConnection sqlConnection =
+                new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                new MySqlCommand(sqlInsert, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue("@username", username);
+                sqlCommand.Parameters.AddWithValue("@groupId", groupId);
+
+                try
+                {
+                    sqlConnection.Open();
+                    int rowsAffected = sqlCommand.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
         [WebMethod]
         public bool LeaveGroup(string username, int groupId)
         {
