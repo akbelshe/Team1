@@ -117,5 +117,86 @@ namespace accountmanager
                 return rowsAffected > 0;
             }
         }
+
+        [WebMethod]
+        public bool PostGroupMessage(
+            int groupId,
+            string username,
+            string messageText)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
+
+            string sqlInsert =
+                @"INSERT INTO groupmessages
+                  (GroupID, Username, MessageText)
+                  VALUES (@groupId, @username, @messageText)";
+
+            using (MySqlConnection sqlConnection =
+                   new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                   new MySqlCommand(sqlInsert, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue(
+                    "@groupId",
+                    groupId);
+
+                sqlCommand.Parameters.AddWithValue(
+                    "@username",
+                    username);
+
+                sqlCommand.Parameters.AddWithValue(
+                    "@messageText",
+                    messageText);
+
+                sqlConnection.Open();
+
+                int rowsAffected =
+                    sqlCommand.ExecuteNonQuery();
+
+                return rowsAffected > 0;
+            }
+        }
+
+        [WebMethod]
+        public DataTable GetGroupMessages(int groupId)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
+
+            string sqlSelect =
+                @"SELECT MessageID,
+                         GroupID,
+                         Username,
+                         MessageText,
+                         CreatedDate
+                  FROM groupmessages
+                  WHERE GroupID = @groupId
+                  ORDER BY CreatedDate ASC";
+
+            using (MySqlConnection sqlConnection =
+                   new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                   new MySqlCommand(sqlSelect, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue(
+                    "@groupId",
+                    groupId);
+
+                MySqlDataAdapter sqlDa =
+                    new MySqlDataAdapter(sqlCommand);
+
+                DataTable sqlDt =
+                    new DataTable("GroupMessages");
+
+                sqlDa.Fill(sqlDt);
+
+                return sqlDt;
+            }
+        }
     }
 }
