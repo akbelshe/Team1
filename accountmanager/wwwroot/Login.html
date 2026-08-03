@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Login</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient( 135deg, #667eea, #764ba2 );
+        }
+
+        .login-container {
+            background: white;
+            width: 400px;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #667eea;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background: #36b08c;
+            }
+
+        #message {
+            margin-top: 18px;
+            text-align: center;
+        }
+
+        .register-link {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <h1>Login</h1>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+
+                <input id="username"
+                       type="text"
+                       placeholder="Enter your username"
+                       required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+
+                <input id="password"
+                       type="password"
+                       placeholder="Enter your password"
+                       required>
+            </div>
+
+            <button type="submit">
+                Login
+            </button>
+        </form>
+
+        <div id="message"></div>
+
+        <div class="register-link">
+            Need an account?
+            <a href="register.html">Register</a>
+        </div>
+    </div>
+
+    <script>
+        document
+            .getElementById("loginForm")
+            .addEventListener("submit", login);
+
+        async function login(event) {
+            event.preventDefault();
+
+            const username =
+                document.getElementById("username").value.trim();
+
+            const password =
+                document.getElementById("password").value;
+
+            const message =
+                document.getElementById("message");
+
+            message.style.color = "#555";
+            message.innerText = "Logging in...";
+
+            try {
+                const response = await fetch(
+                    "/Account/Login?" +
+                    "username=" +
+                    encodeURIComponent(username) +
+                    "&password=" +
+                    encodeURIComponent(password),
+                    {
+                        method: "POST"
+                    }
+                );
+
+                const result = await response.text();
+
+                if (response.ok) {
+                    message.style.color = "green";
+                    message.innerText = result;
+
+                    setTimeout(function () {
+                        //This goes back to register for now
+                        window.location.href = "register.html";
+                    }, 1000);
+                } else {
+                    message.style.color = "red";
+                    message.innerText = result;
+                }
+            } catch (error) {
+                message.style.color = "red";
+                message.innerText =
+                    "Unable to connect to the server.";
+            }
+        }
+    </script>
+</body>
+</html>

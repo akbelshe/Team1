@@ -1,0 +1,251 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Create Account</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient( 135deg, #667eea, #764ba2 );
+        }
+
+        .register-container {
+            background: white;
+            width: 420px;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+            flex: 1;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+            input:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+            }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            margin-top: 10px;
+            background: #667eea;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background: #36b08c;
+            }
+
+        .message {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 14px;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+
+            .login-link a {
+                color: #185a9d;
+                text-decoration: none;
+            }
+
+                .login-link a:hover {
+                    text-decoration: underline;
+                }
+    </style>
+</head>
+
+<body>
+    <div class="register-container">
+        <h1>Create Account</h1>
+
+        <div class="subtitle">
+            Join us today
+        </div>
+
+        <form id="registerForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+
+                <input id="username"
+                       type="text"
+                       placeholder="Choose a username"
+                       required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Password</label>
+
+                <input id="password"
+                       type="password"
+                       placeholder="Create a password"
+                       required>
+            </div>
+
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="firstName">
+                        First Name
+                    </label>
+
+                    <input id="firstName"
+                           type="text"
+                           placeholder="First name"
+                           required>
+                </div>
+
+                <div class="input-group">
+                    <label for="lastName">
+                        Last Name
+                    </label>
+
+                    <input id="lastName"
+                           type="text"
+                           placeholder="Last name">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="email">Email</label>
+
+                <input id="email"
+                       type="email"
+                       placeholder="example@email.com"
+                       required>
+            </div>
+
+            <button type="submit">
+                Create Account
+            </button>
+        </form>
+
+        <div class="message" id="message"></div>
+
+        <div class="login-link">
+            Already have an account?
+            <a href="login.html">Login</a>
+        </div>
+    </div>
+
+    <script>
+        document
+            .getElementById("registerForm")
+            .addEventListener("submit", register);
+
+        async function register(event) {
+            event.preventDefault();
+
+            const username =
+                document.getElementById("username").value.trim();
+
+            const password =
+                document.getElementById("password").value;
+
+            const firstName =
+                document.getElementById("firstName").value.trim();
+
+            const lastName =
+                document.getElementById("lastName").value.trim();
+
+            const email =
+                document.getElementById("email").value.trim();
+
+            const message =
+                document.getElementById("message");
+
+            message.style.color = "#555";
+            message.innerText = "Creating account...";
+
+            try {
+                const response = await fetch(
+                    "/Account/Register?" +
+                    "username=" + encodeURIComponent(username) +
+                    "&password=" + encodeURIComponent(password) +
+                    "&firstName=" + encodeURIComponent(firstName) +
+                    "&lastName=" + encodeURIComponent(lastName) +
+                    "&email=" + encodeURIComponent(email),
+                    {
+                        method: "POST"
+                    }
+                );
+
+                const result = await response.text();
+
+                if (response.ok) {
+                    message.style.color = "green";
+                    message.innerText = result;
+
+                    setTimeout(function () {
+                        window.location.href = "login.html";
+                    }, 1500);
+                } else {
+                    message.style.color = "red";
+                    message.innerText = result;
+                }
+            } catch (error) {
+                console.error(error);
+
+                message.style.color = "red";
+                message.innerText =
+                    "Unable to connect to the server.";
+            }
+        }
+    </script>
+</body>
+</html>

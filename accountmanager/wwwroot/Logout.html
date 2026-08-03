@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Logout</title>
+</head>
+
+<body>
+    <p id="message">Logging out...</p>
+
+    <script>
+        async function logout() {
+            const message =
+                document.getElementById("message");
+
+            try {
+                const response = await fetch(
+                    "/Account/Logout",
+                    {
+                        method: "POST"
+                    }
+                );
+
+                if (response.ok) {
+                    window.location.href = "login.html";
+                } else {
+                    message.innerText =
+                        "Unable to log out.";
+                }
+            } catch (error) {
+                message.innerText =
+                    "Unable to connect to the server.";
+            }
+        }
+
+        logout();
+    </script>
+</body>
+</html>

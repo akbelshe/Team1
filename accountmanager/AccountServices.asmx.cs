@@ -2,52 +2,236 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
-using System.Web.Services;
-
-//we need these to talk to mysql
-using MySql.Data;
-using MySql.Data.MySqlClient;
-//and we need this to manipulate data from a db
 using System.Data;
+using System.Web.Services;
+using MySql.Data.MySqlClient;
 
 namespace accountmanager
 {
-	/// <summary>
-	/// Summary description for AccountServices
-	/// </summary>
-	[WebService(Namespace = "http://tempuri.org/")]
-	[WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
-	[System.ComponentModel.ToolboxItem(false)]
-	// To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line. 
-	[System.Web.Script.Services.ScriptService]
-	public class AccountServices : System.Web.Services.WebService
-	{
+    /// <summary>
+    /// Summary description for AccountServices
+    /// </summary>
+    [WebService(Namespace = "http://tempuri.org/")]
+    [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+    [System.ComponentModel.ToolboxItem(false)]
+    [System.Web.Script.Services.ScriptService]
+    public class AccountServices : System.Web.Services.WebService
+    {
+        [WebMethod]
+        public int NumberOfAccounts()
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
 
-		[WebMethod]
-		public int NumberOfAccounts()
-		{
-			//here we are grabbing that connection string from our web.config file
-			string sqlConnectString = System.Configuration.ConfigurationManager.ConnectionStrings["myDB"].ConnectionString;
-			//here's our query.  A basic select with nothing fancy.
-			string sqlSelect = "SELECT * from accounts";
+            string sqlSelect = "SELECT * FROM accounts";
 
+            MySqlConnection sqlConnection =
+                new MySqlConnection(sqlConnectString);
 
+            MySqlCommand sqlCommand =
+                new MySqlCommand(sqlSelect, sqlConnection);
 
-			//set up our connection object to be ready to use our connection string
-			MySqlConnection sqlConnection = new MySqlConnection(sqlConnectString);
-			//set up our command object to use our connection, and our query
-			MySqlCommand sqlCommand = new MySqlCommand(sqlSelect, sqlConnection);
+            MySqlDataAdapter sqlDa =
+                new MySqlDataAdapter(sqlCommand);
 
+            DataTable sqlDt = new DataTable();
 
-			//a data adapter acts like a bridge between our command object and 
-			//the data we are trying to get back and put in a table object
-			MySqlDataAdapter sqlDa = new MySqlDataAdapter(sqlCommand);
-			//here's the table we want to fill with the results from our query
-			DataTable sqlDt = new DataTable();
-			//here we go filling it!
-			sqlDa.Fill(sqlDt);
-			//return the number of rows we have, that's how many accounts are in the system!
-			return sqlDt.Rows.Count;
-		}
-	}
+            sqlDa.Fill(sqlDt);
+
+            return sqlDt.Rows.Count;
+        }
+
+        [WebMethod]
+        public bool CreateStudyGroup(
+            string groupName,
+            string course,
+            string section,
+            int createdBy)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
+
+            string sqlInsert =
+                @"INSERT INTO studygroups
+                  (GroupName, Course, Section, CreatedBy)
+                  VALUES (@groupName, @course, @section, @createdBy)";
+
+            using (MySqlConnection sqlConnection =
+                   new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                   new MySqlCommand(sqlInsert, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue("@groupName", groupName);
+                sqlCommand.Parameters.AddWithValue("@course", course);
+                sqlCommand.Parameters.AddWithValue("@section", section);
+                sqlCommand.Parameters.AddWithValue("@createdBy", createdBy);
+
+                try
+                {
+                    sqlConnection.Open();
+
+                    int rowsAffected =
+                        sqlCommand.ExecuteNonQuery();
+
+                    return rowsAffected > 0;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+        }
+        [WebMethod]
+        public bool JoinStudyGroup(string username, int groupId)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
+
+            string sqlInsert =
+                @"INSERT INTO groupmembers
+                (Username, GroupID)
+                VALUES (@username, @groupId)";
+
+            using (MySqlConnection sqlConnection =
+                new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                new MySqlCommand(sqlInsert, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue("@username", username);
+                sqlCommand.Parameters.AddWithValue("@groupId", groupId);
+
+                try
+                {
+                    sqlConnection.Open();
+                    int rowsAffected = sqlCommand.ExecuteNonQuery();
+                    return rowsAffected > 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+        [WebMethod]
+        public bool LeaveGroup(string username, int groupId)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
+
+            string sqlDelete =
+                @"DELETE FROM groupmembers
+                  WHERE Username = @username
+                  AND GroupID = @groupId";
+
+            using (MySqlConnection sqlConnection =
+                   new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                   new MySqlCommand(sqlDelete, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue(
+                    "@username",
+                    username);
+
+                sqlCommand.Parameters.AddWithValue(
+                    "@groupId",
+                    groupId);
+
+                sqlConnection.Open();
+
+                int rowsAffected =
+                    sqlCommand.ExecuteNonQuery();
+
+                return rowsAffected > 0;
+            }
+        }
+
+        [WebMethod]
+        public bool PostGroupMessage(
+            int groupId,
+            string username,
+            string messageText)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
+
+            string sqlInsert =
+                @"INSERT INTO groupmessages
+                  (GroupID, Username, MessageText)
+                  VALUES (@groupId, @username, @messageText)";
+
+            using (MySqlConnection sqlConnection =
+                   new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                   new MySqlCommand(sqlInsert, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue(
+                    "@groupId",
+                    groupId);
+
+                sqlCommand.Parameters.AddWithValue(
+                    "@username",
+                    username);
+
+                sqlCommand.Parameters.AddWithValue(
+                    "@messageText",
+                    messageText);
+
+                sqlConnection.Open();
+
+                int rowsAffected =
+                    sqlCommand.ExecuteNonQuery();
+
+                return rowsAffected > 0;
+            }
+        }
+
+        [WebMethod]
+        public DataTable GetGroupMessages(int groupId)
+        {
+            string sqlConnectString =
+                System.Configuration.ConfigurationManager
+                .ConnectionStrings["myDB"]
+                .ConnectionString;
+
+            string sqlSelect =
+                @"SELECT MessageID,
+                         GroupID,
+                         Username,
+                         MessageText,
+                         CreatedDate
+                  FROM groupmessages
+                  WHERE GroupID = @groupId
+                  ORDER BY CreatedDate ASC";
+
+            using (MySqlConnection sqlConnection =
+                   new MySqlConnection(sqlConnectString))
+            using (MySqlCommand sqlCommand =
+                   new MySqlCommand(sqlSelect, sqlConnection))
+            {
+                sqlCommand.Parameters.AddWithValue(
+                    "@groupId",
+                    groupId);
+
+                MySqlDataAdapter sqlDa =
+                    new MySqlDataAdapter(sqlCommand);
+
+                DataTable sqlDt =
+                    new DataTable("GroupMessages");
+
+                sqlDa.Fill(sqlDt);
+
+                return sqlDt;
+            }
+        }
+    }
 }
